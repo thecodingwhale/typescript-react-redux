@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { connect } from 'react-redux';
 import { Todo, fetchTodos, deleteTodo } from '../actions';
 import { StoreState } from '../reducers';
@@ -13,47 +13,37 @@ interface AppState {
   fetching: boolean;
 }
 
-class _App extends React.Component<AppProps, AppState> {
-  constructor(props: AppProps) {
-    super(props);
-    this.state = { fetching: false };
-  }
-
-  componentDidUpdate(prevProps: AppProps): void {
-    if (!prevProps.todos.length && this.props.todos.length) {
-      this.setState({ fetching: false });
-    }
-  }
-
-  onButtonClick = (): void => {
-    this.props.fetchTodos();
-    this.setState({ fetching: true });
+const _App: React.FC<AppProps> = props => {
+  const [fetching, setFetching] = React.useState<AppState | boolean>(false);
+  const onButtonClick = (): void => {
+    props.fetchTodos();
+    setFetching(true);
   };
-
-  onTodoClick = (id: number): void => {
-    this.props.deleteTodo(id);
+  const onTodoClick = (id: number): void => {
+    props.deleteTodo(id);
   };
-
-  renderLists(): JSX.Element[] {
-    return this.props.todos.map((todo: Todo) => {
+  const renderLists = (): JSX.Element[] => {
+    return props.todos.map((todo: Todo) => {
       return (
-        <div onClick={() => this.onTodoClick(todo.id)} key={todo.id}>
+        <div onClick={() => onTodoClick(todo.id)} key={todo.id}>
           {todo.title}
         </div>
       );
     });
-  }
-
-  render() {
-    return (
-      <div>
-        <button onClick={this.onButtonClick}>Fetch</button>
-        {this.state.fetching ? 'LOADING' : null}
-        {this.renderLists()}
-      </div>
-    );
-  }
-}
+  };
+  React.useEffect((): void => {
+    if (fetching && props.todos.length !== 0) {
+      setFetching(false);
+    }
+  }, [fetching, props.todos]);
+  return (
+    <div>
+      <button onClick={onButtonClick}>Fetch</button>
+      {fetching ? 'LOADING' : null}
+      {renderLists()}
+    </div>
+  );
+};
 
 const mapStateToProps = ({ todos }: StoreState): { todos: Todo[] } => {
   return {
